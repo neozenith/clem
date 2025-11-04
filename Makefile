@@ -14,8 +14,13 @@ MAKEFLAGS += --no-builtin-rules
 
 init: .make/init
 .make/init:
-	uv sync --dev
+	uv sync --extra dev
 	@touch $@
+
+test: .make/init
+	@echo "Running tests with coverage..."
+	uv run pytest tests/ -v --cov=src/clem --cov-report=term-missing --cov-report=html
+	@echo "✓ Tests complete. Coverage report: htmlcov/index.html"
 
 .make/tool-install:
 	# https://docs.astral.sh/uv/guides/tools/#installing-tools
@@ -113,6 +118,10 @@ clean:
 		rm -f ~/.claude/misc/PATTERNS.md; \
 		rm -f ~/.claude/misc/LESSONS.md; \
 		rm -f ~/.claude/misc/SKILLS.md; \
+		rm -rf tmp/; \
+		rm -rf ~/.clem/; \
+		rm -rf htmlcov/; \
+		rm -f .coverage; \
 		echo "✓ Artifacts cleaned"; \
 	else \
 		echo "Cancelled"; \

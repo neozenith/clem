@@ -208,3 +208,10 @@ __marimo__/
 
 
 .make/
+
+# Temporary scripts and one-off files
+tmp/
+
+# Test coverage reports
+htmlcov/
+.coverage

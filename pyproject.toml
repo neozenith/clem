@@ -1,16 +1,28 @@
 [project]
 name = "clem"
 version = "0.1.0"
-description = "Add your description here"
+description = "Claude Learning & Experience Manager - AI-powered session memory and knowledge extraction"
 readme = "README.md"
 authors = [
     { name = "Josh Peak", email = "joshpeak05@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "duckdb>=1.0.0",
+    "rich>=13.0.0",
+    "sentence-transformers>=2.0.0",
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+]
 
 [project.scripts]
-clem = "clem:main"
+clem = "clem.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.8.13,<0.9.0"]

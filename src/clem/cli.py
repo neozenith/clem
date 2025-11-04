@@ -2,15 +2,21 @@
 
 import argparse
 import sys
-from pathlib import Path
+from typing import cast
 
 from rich.console import Console
-from rich.table import Table
 
 from . import __version__
+from .config import get_database_path
 from .database.builder import DatabaseBuilder
 from .database.manager import DatabaseManager
-from .config import get_database_path
+from .display import (
+    format_domain_table,
+    format_project_table,
+    format_session_table,
+    format_stats_table,
+)
+from .queries import DomainQuery, ProjectQuery, SessionQuery
 
 console = Console()
 
@@ -46,23 +52,12 @@ def cmd_stats(args) -> int:
     try:
         stats = builder.get_stats()
 
-        if 'error' in stats:
+        if "error" in stats:
             console.print(f"[bold red]Error:[/bold red] {stats['error']}")
             return 1
 
-        # Create stats table
-        table = Table(title="Database Statistics", show_header=True)
-        table.add_column("Metric", style="cyan")
-        table.add_column("Value", style="green", justify="right")
-
-        table.add_row("Domains", str(stats['domains']))
-        table.add_row("Projects", str(stats['projects']))
-        table.add_row("Sessions", str(stats['sessions']))
-        table.add_row("Memories", str(stats['memories']))
-        table.add_row("Schema Version", stats['schema_version'])
-        if stats.get('last_rebuild'):
-            table.add_row("Last Rebuild", stats['last_rebuild'])
-
+        # Use display layer for formatting
+        table = format_stats_table(stats)
         console.print(table)
         console.print(f"\n[dim]Database: {db_path}[/dim]")
 
@@ -85,26 +80,16 @@ def cmd_domains(args) -> int:
     manager = DatabaseManager()
 
     try:
-        domains = manager.query("""
-            SELECT domain_id, domain_path, project_count, session_count
-            FROM domains
-            ORDER BY domain_path
-        """)
+        # Use queries layer
+        query = DomainQuery(manager)
+        domains = query.list_all()
 
         if not domains:
             console.print("[yellow]No domains found.[/yellow]")
             return 0
 
-        # Create domains table
-        table = Table(show_header=True)
-        table.add_column("Domain", style="cyan")
-        table.add_column("Projects", justify="right", style="green")
-        table.add_column("Sessions", justify="right", style="blue")
-
-        for domain_id, domain_path, project_count, session_count in domains:
-            display_name = domain_path if domain_path else "(no domain)"
-            table.add_row(display_name, str(project_count), str(session_count))
-
+        # Use display layer for formatting
+        table = format_domain_table(domains)
         console.print(table)
         console.print(f"\n[dim]Total: {len(domains)} domains[/dim]")
 
@@ -127,40 +112,16 @@ def cmd_projects(args) -> int:
     manager = DatabaseManager()
 
     try:
-        # Build query
-        query = """
-            SELECT
-                p.project_name,
-                p.domain_id,
-                p.session_count,
-                p.cwd
-            FROM projects p
-        """
-
-        params = []
-
-        if args.domain:
-            query += " WHERE p.domain_id = ?"
-            params.append(args.domain)
-
-        query += " ORDER BY p.domain_id, p.project_name"
-
-        projects = manager.query(query, params) if params else manager.query(query)
+        # Use queries layer
+        query = ProjectQuery(manager)
+        projects = query.list_all(domain_id=args.domain if hasattr(args, "domain") else None)
 
         if not projects:
             console.print("[yellow]No projects found.[/yellow]")
             return 0
 
-        # Create projects table
-        table = Table(show_header=True)
-        table.add_column("Project", style="cyan")
-        table.add_column("Domain", style="magenta")
-        table.add_column("Sessions", justify="right", style="green")
-
-        for project_name, domain_id, session_count, cwd in projects:
-            display_domain = domain_id if domain_id else "(no domain)"
-            table.add_row(project_name, display_domain, str(session_count))
-
+        # Use display layer for formatting
+        table = format_project_table(projects)
         console.print(table)
         console.print(f"\n[dim]Total: {len(projects)} projects[/dim]")
 
@@ -183,69 +144,20 @@ def cmd_sessions(args) -> int:
     manager = DatabaseManager()
 
     try:
-        # Build query
-        query = """
-            SELECT
-                s.session_id,
-                p.project_name,
-                d.domain_path,
-                s.event_count,
-                s.started_at
-            FROM sessions s
-            JOIN projects p ON s.project_id = p.project_id
-            JOIN domains d ON s.domain_id = d.domain_id
-        """
+        # Use queries layer
+        query = SessionQuery(manager)
+        project_name = args.project if hasattr(args, "project") and args.project else None
+        domain_id = args.domain if hasattr(args, "domain") and args.domain else None
+        limit = args.limit if hasattr(args, "limit") else 20
 
-        params = []
-
-        if args.project:
-            query += " WHERE p.project_name = ?"
-            params.append(args.project)
-        elif args.domain:
-            query += " WHERE d.domain_id = ?"
-            params.append(args.domain)
-
-        query += " ORDER BY s.started_at DESC"
-
-        if args.limit:
-            query += f" LIMIT {args.limit}"
-
-        sessions = manager.query(query, params) if params else manager.query(query)
+        sessions = query.list_all(project_name=project_name, domain_id=domain_id, limit=limit)
 
         if not sessions:
             console.print("[yellow]No sessions found.[/yellow]")
             return 0
 
-        # Create sessions table
-        table = Table(show_header=True)
-        table.add_column("Session ID", style="cyan", no_wrap=True)
-        table.add_column("Project", style="magenta")
-        table.add_column("Domain", style="blue")
-        table.add_column("Events", justify="right", style="green")
-        table.add_column("Started", style="dim")
-
-        for session_id, project_name, domain_path, event_count, started_at in sessions:
-            # Truncate session ID for display
-            short_id = session_id[:8] if len(session_id) > 8 else session_id
-            display_domain = domain_path if domain_path else "(no domain)"
-
-            # Format datetime
-            if started_at:
-                if isinstance(started_at, str):
-                    display_started = started_at[:19]
-                else:
-                    display_started = started_at.isoformat()[:19]
-            else:
-                display_started = "N/A"
-
-            table.add_row(
-                short_id,
-                project_name,
-                display_domain,
-                str(event_count),
-                display_started
-            )
-
+        # Use display layer for formatting
+        table = format_session_table(sessions)
         console.print(table)
         console.print(f"\n[dim]Showing {len(sessions)} sessions[/dim]")
 
@@ -262,64 +174,35 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    parser.add_argument(
-        '--version',
-        action='version',
-        version=f'clem {__version__}'
-    )
+    parser.add_argument("--version", action="version", version=f"clem {__version__}")
 
-    subparsers = parser.add_subparsers(dest='command', help='Commands')
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
 
     # rebuild command
     parser_rebuild = subparsers.add_parser(
-        'rebuild',
-        help='Rebuild database from source (nuclear option)'
+        "rebuild", help="Rebuild database from source (nuclear option)"
     )
     parser_rebuild.set_defaults(func=cmd_rebuild)
 
     # stats command
-    parser_stats = subparsers.add_parser(
-        'stats',
-        help='Show database statistics'
-    )
+    parser_stats = subparsers.add_parser("stats", help="Show database statistics")
     parser_stats.set_defaults(func=cmd_stats)
 
     # domains command
-    parser_domains = subparsers.add_parser(
-        'domains',
-        help='List all domains'
-    )
+    parser_domains = subparsers.add_parser("domains", help="List all domains")
     parser_domains.set_defaults(func=cmd_domains)
 
     # projects command
-    parser_projects = subparsers.add_parser(
-        'projects',
-        help='List all projects'
-    )
-    parser_projects.add_argument(
-        '--domain',
-        help='Filter by domain'
-    )
+    parser_projects = subparsers.add_parser("projects", help="List all projects")
+    parser_projects.add_argument("--domain", help="Filter by domain")
     parser_projects.set_defaults(func=cmd_projects)
 
     # sessions command
-    parser_sessions = subparsers.add_parser(
-        'sessions',
-        help='List sessions'
-    )
+    parser_sessions = subparsers.add_parser("sessions", help="List sessions")
+    parser_sessions.add_argument("--project", help="Filter by project name")
+    parser_sessions.add_argument("--domain", help="Filter by domain")
     parser_sessions.add_argument(
-        '--project',
-        help='Filter by project name'
-    )
-    parser_sessions.add_argument(
-        '--domain',
-        help='Filter by domain'
-    )
-    parser_sessions.add_argument(
-        '--limit',
-        type=int,
-        default=20,
-        help='Limit number of results (default: 20)'
+        "--limit", type=int, default=20, help="Limit number of results (default: 20)"
     )
     parser_sessions.set_defaults(func=cmd_sessions)
 
@@ -329,8 +212,8 @@ def main() -> int:
         parser.print_help()
         return 1
 
-    return args.func(args)
+    return cast(int, args.func(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

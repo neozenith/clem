@@ -4,7 +4,8 @@ Handles DuckDB connection lifecycle with lazy initialization.
 """
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 import duckdb
 
 from ..config import get_database_path
@@ -24,14 +25,14 @@ class DatabaseManager:
         ...     results = manager.execute("SELECT * FROM domains")
     """
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         """Initialize database manager.
 
         Args:
             db_path: Path to database file. If None, uses default from config.
         """
         self.db_path = db_path or get_database_path()
-        self._connection: Optional[duckdb.DuckDBPyConnection] = None
+        self._connection: duckdb.DuckDBPyConnection | None = None
 
     @property
     def connection(self) -> duckdb.DuckDBPyConnection:
@@ -40,24 +41,24 @@ class DatabaseManager:
             self._connection = duckdb.connect(str(self.db_path))
         return self._connection
 
-    def execute(self, query: str, params: Optional[dict] = None) -> duckdb.DuckDBPyRelation:
+    def execute(self, query: str, params: list[Any] | None = None) -> Any:
         """Execute a SQL query.
 
         Args:
             query: SQL query string
-            params: Optional query parameters
+            params: Optional query parameters (positional list)
 
         Returns:
-            DuckDB relation result
+            DuckDB connection with result (supports fetchone/fetchall/fetchmany)
 
         Example:
-            >>> manager.execute("SELECT * FROM domains WHERE domain_id = ?", {'id': 'play'})
+            >>> manager.execute("SELECT * FROM domains WHERE domain_id = ?", ['play'])
         """
         if params:
             return self.connection.execute(query, params)
         return self.connection.execute(query)
 
-    def query(self, query: str, params: Optional[dict] = None) -> Any:
+    def query(self, query: str, params: list[Any] | None = None) -> Any:
         """Execute query and fetch all results.
 
         Args:
@@ -76,7 +77,7 @@ class DatabaseManager:
             self._connection.close()
             self._connection = None
 
-    def __enter__(self) -> 'DatabaseManager':
+    def __enter__(self) -> "DatabaseManager":
         """Context manager entry."""
         return self
 

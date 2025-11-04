@@ -6,4 +6,4 @@ Database is treated as disposable cache.
 
 from .manager import DatabaseManager
 
-__all__ = ['DatabaseManager']
+__all__ = ["DatabaseManager"]

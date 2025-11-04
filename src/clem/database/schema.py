@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     import duckdb
 
 
-def init_schema(conn: 'duckdb.DuckDBPyConnection') -> None:
+def init_schema(conn: "duckdb.DuckDBPyConnection") -> None:
     """Initialize complete database schema.
 
     Creates all tables, indexes, and extensions.
@@ -31,13 +31,16 @@ def init_schema(conn: 'duckdb.DuckDBPyConnection') -> None:
     create_memories_table(conn)
 
     # Store schema version
-    conn.execute("""
+    conn.execute(
+        """
         INSERT OR REPLACE INTO metadata (key, value)
         VALUES ('schema_version', ?)
-    """, [SCHEMA_VERSION])
+    """,
+        [SCHEMA_VERSION],
+    )
 
 
-def setup_vss_extension(conn: 'duckdb.DuckDBPyConnection') -> None:
+def setup_vss_extension(conn: "duckdb.DuckDBPyConnection") -> None:
     """Install and load VSS extension for vector similarity search.
 
     Args:
@@ -49,7 +52,7 @@ def setup_vss_extension(conn: 'duckdb.DuckDBPyConnection') -> None:
     conn.execute("SET hnsw_enable_experimental_persistence = true")
 
 
-def create_metadata_table(conn: 'duckdb.DuckDBPyConnection') -> None:
+def create_metadata_table(conn: "duckdb.DuckDBPyConnection") -> None:
     """Create metadata table for tracking database state.
 
     Args:
@@ -64,7 +67,7 @@ def create_metadata_table(conn: 'duckdb.DuckDBPyConnection') -> None:
     """)
 
 
-def create_domains_table(conn: 'duckdb.DuckDBPyConnection') -> None:
+def create_domains_table(conn: "duckdb.DuckDBPyConnection") -> None:
     """Create domains table.
 
     Domain represents a collection of projects (e.g., 'play', 'clients/nine').
@@ -83,7 +86,7 @@ def create_domains_table(conn: 'duckdb.DuckDBPyConnection') -> None:
     """)
 
 
-def create_projects_table(conn: 'duckdb.DuckDBPyConnection') -> None:
+def create_projects_table(conn: "duckdb.DuckDBPyConnection") -> None:
     """Create projects table.
 
     Project is a git repository that Claude Code works with.
@@ -116,7 +119,7 @@ def create_projects_table(conn: 'duckdb.DuckDBPyConnection') -> None:
     """)
 
 
-def create_sessions_table(conn: 'duckdb.DuckDBPyConnection') -> None:
+def create_sessions_table(conn: "duckdb.DuckDBPyConnection") -> None:
     """Create sessions table.
 
     Session is a single Claude Code conversation (one .jsonl file).
@@ -157,7 +160,7 @@ def create_sessions_table(conn: 'duckdb.DuckDBPyConnection') -> None:
     """)
 
 
-def create_memories_table(conn: 'duckdb.DuckDBPyConnection') -> None:
+def create_memories_table(conn: "duckdb.DuckDBPyConnection") -> None:
     """Create memories table with vector search support.
 
     Memories are extracted insights from sessions.
@@ -203,17 +206,17 @@ def create_memories_table(conn: 'duckdb.DuckDBPyConnection') -> None:
     conn.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_memories_embedding
         ON memories USING HNSW (embedding)
-        WITH (metric = '{VSS_INDEX_PARAMS['metric']}')
+        WITH (metric = '{VSS_INDEX_PARAMS["metric"]}')
     """)
 
 
-def drop_all_tables(conn: 'duckdb.DuckDBPyConnection') -> None:
+def drop_all_tables(conn: "duckdb.DuckDBPyConnection") -> None:
     """Drop all tables (nuclear rebuild).
 
     Args:
         conn: DuckDB connection
     """
     # Drop in reverse dependency order
-    tables = ['memories', 'sessions', 'projects', 'domains', 'metadata']
+    tables = ["memories", "sessions", "projects", "domains", "metadata"]
     for table in tables:
         conn.execute(f"DROP TABLE IF EXISTS {table} CASCADE")

@@ -5,14 +5,14 @@ Rebuilds the database from source (Claude Code session files).
 
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+
 import duckdb
 
-from ..config import get_database_path, SCHEMA_VERSION
-from ..core.project import discover_projects, get_unique_domains, ProjectInfo
+from ..config import SCHEMA_VERSION, get_database_path
 from ..core.domain import generate_domain_id
+from ..core.project import ProjectInfo, discover_projects, get_unique_domains
 from .manager import DatabaseManager
-from .schema import init_schema, drop_all_tables
+from .schema import drop_all_tables, init_schema
 
 
 class DatabaseBuilder:
@@ -21,7 +21,7 @@ class DatabaseBuilder:
     Database is disposable cache - can be deleted and rebuilt at any time.
     """
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         """Initialize database builder.
 
         Args:
@@ -79,23 +79,29 @@ class DatabaseBuilder:
         print(f"  Indexed: {session_count} sessions")
 
         # Update metadata
-        conn.execute("""
+        conn.execute(
+            """
             INSERT INTO metadata (key, value)
             VALUES ('last_rebuild', ?)
             ON CONFLICT (key) DO UPDATE SET
                 value = excluded.value,
                 updated_at = NOW()
-        """, [datetime.now().isoformat()])
+        """,
+            [datetime.now().isoformat()],
+        )
 
-        conn.execute("""
+        conn.execute(
+            """
             INSERT INTO metadata (key, value)
             VALUES ('sessions_indexed', ?)
             ON CONFLICT (key) DO UPDATE SET
                 value = excluded.value,
                 updated_at = NOW()
-        """, [str(session_count)])
+        """,
+            [str(session_count)],
+        )
 
-        print(f"\n✅ Rebuild complete!")
+        print("\n✅ Rebuild complete!")
         print(f"   Database: {self.db_path}")
         print(f"   Domains: {len(domains)}")
         print(f"   Projects: {len(projects)}")
@@ -112,7 +118,8 @@ class DatabaseBuilder:
         for domain_path, projects_in_domain in domains.items():
             domain_id = generate_domain_id(domain_path)
 
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO domains (
                     domain_id,
                     domain_path,
@@ -125,13 +132,15 @@ class DatabaseBuilder:
                     project_count = excluded.project_count,
                     session_count = excluded.session_count,
                     last_scan = excluded.last_scan
-            """, [
-                domain_id,
-                domain_path,
-                len(projects_in_domain),
-                sum(len(p.session_files) for p in projects_in_domain),
-                datetime.now(),
-            ])
+            """,
+                [
+                    domain_id,
+                    domain_path,
+                    len(projects_in_domain),
+                    sum(len(p.session_files) for p in projects_in_domain),
+                    datetime.now(),
+                ],
+            )
 
     def _populate_projects(self, projects: dict[str, ProjectInfo]) -> None:
         """Populate projects table.
@@ -144,7 +153,8 @@ class DatabaseBuilder:
         for project_info in projects.values():
             domain_id = generate_domain_id(project_info.domain_path)
 
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO projects (
                     project_id,
                     project_name,
@@ -158,15 +168,17 @@ class DatabaseBuilder:
                 ON CONFLICT (project_id) DO UPDATE SET
                     session_count = excluded.session_count,
                     last_scan = excluded.last_scan
-            """, [
-                project_info.project_id,
-                project_info.project_name,
-                domain_id,
-                project_info.cwd,
-                project_info.claude_project_id,
-                len(project_info.session_files),
-                datetime.now(),
-            ])
+            """,
+                [
+                    project_info.project_id,
+                    project_info.project_name,
+                    domain_id,
+                    project_info.cwd,
+                    project_info.claude_project_id,
+                    len(project_info.session_files),
+                    datetime.now(),
+                ],
+            )
 
     def _populate_sessions(self, projects: dict[str, ProjectInfo]) -> int:
         """Populate sessions table.
@@ -190,7 +202,8 @@ class DatabaseBuilder:
                 session_id = session_file.stem  # Filename without .jsonl
                 session_meta = self._get_session_metadata(session_file)
 
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT INTO sessions (
                         session_id,
                         project_id,
@@ -206,17 +219,19 @@ class DatabaseBuilder:
                     ON CONFLICT (session_id) DO UPDATE SET
                         event_count = excluded.event_count,
                         last_event_at = excluded.last_event_at
-                """, [
-                    session_id,
-                    project_info.project_id,
-                    domain_id,
-                    str(session_file),
-                    session_meta.get('git_branch'),
-                    session_meta.get('started_at'),
-                    session_meta.get('last_event_at'),
-                    session_meta.get('event_count', 0),
-                    False,  # Not indexed for semantic search yet
-                ])
+                """,
+                    [
+                        session_id,
+                        project_info.project_id,
+                        domain_id,
+                        str(session_file),
+                        session_meta.get("git_branch"),
+                        session_meta.get("started_at"),
+                        session_meta.get("last_event_at"),
+                        session_meta.get("event_count", 0),
+                        False,  # Not indexed for semantic search yet
+                    ],
+                )
 
                 session_count += 1
 
@@ -232,7 +247,7 @@ class DatabaseBuilder:
             Dictionary with metadata: git_branch, started_at, last_event_at, event_count
         """
         try:
-            conn = duckdb.connect(':memory:')
+            conn = duckdb.connect(":memory:")
 
             # Get git branch
             git_branch_result = conn.execute(f"""
@@ -260,10 +275,10 @@ class DatabaseBuilder:
                 started_at, last_event_at, event_count = None, None, 0
 
             return {
-                'git_branch': git_branch,
-                'started_at': started_at,
-                'last_event_at': last_event_at,
-                'event_count': event_count,
+                "git_branch": git_branch,
+                "started_at": started_at,
+                "last_event_at": last_event_at,
+                "event_count": event_count,
             }
 
         except Exception as e:
@@ -279,10 +294,15 @@ class DatabaseBuilder:
         conn = self.manager.connection
 
         try:
-            domain_count = conn.execute("SELECT COUNT(*) FROM domains").fetchone()[0]
-            project_count = conn.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
-            session_count = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
-            memory_count = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+            domain_result = conn.execute("SELECT COUNT(*) FROM domains").fetchone()
+            project_result = conn.execute("SELECT COUNT(*) FROM projects").fetchone()
+            session_result = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()
+            memory_result = conn.execute("SELECT COUNT(*) FROM memories").fetchone()
+
+            domain_count = domain_result[0] if domain_result else 0
+            project_count = project_result[0] if project_result else 0
+            session_count = session_result[0] if session_result else 0
+            memory_count = memory_result[0] if memory_result else 0
 
             last_rebuild_result = conn.execute("""
                 SELECT value FROM metadata WHERE key = 'last_rebuild'
@@ -291,16 +311,16 @@ class DatabaseBuilder:
             last_rebuild = last_rebuild_result[0] if last_rebuild_result else None
 
             return {
-                'domains': domain_count,
-                'projects': project_count,
-                'sessions': session_count,
-                'memories': memory_count,
-                'last_rebuild': last_rebuild,
-                'schema_version': SCHEMA_VERSION,
+                "domains": domain_count,
+                "projects": project_count,
+                "sessions": session_count,
+                "memories": memory_count,
+                "last_rebuild": last_rebuild,
+                "schema_version": SCHEMA_VERSION,
             }
 
         except Exception as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def close(self) -> None:
         """Close database connection."""

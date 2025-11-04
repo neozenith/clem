@@ -22,6 +22,22 @@ test: .make/init
 	uv run pytest tests/ -v --cov=src/clem --cov-report=term-missing --cov-report=html
 	@echo "✓ Tests complete. Coverage report: htmlcov/index.html"
 
+lint: .make/init
+	@echo "🔍 Running linters..."
+	@echo "  → ruff check"
+	@uv run ruff check src/clem
+	@echo "  → ruff format check"
+	@uv run ruff format --check src/clem
+	@echo "  → mypy"
+	@uv run mypy src/clem
+	@echo "✓ All linting checks passed!"
+
+format: .make/init
+	@echo "🎨 Formatting code..."
+	@uv run ruff format src/clem
+	@uv run ruff check --fix src/clem
+	@echo "✓ Code formatted!"
+
 .make/tool-install:
 	# https://docs.astral.sh/uv/guides/tools/#installing-tools
 	uv tool install git+https://github.com/neozenith/clem@main

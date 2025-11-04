@@ -10,13 +10,13 @@ from typing import Final
 # === Paths ===
 
 #: CLEM home directory containing all generated/cached data
-CLEM_HOME: Final[Path] = Path('~/.clem/').expanduser()
+CLEM_HOME: Final[Path] = Path("~/.clem/").expanduser()
 
 #: Main database file (disposable cache - can be rebuilt anytime)
-DATABASE_PATH: Final[Path] = CLEM_HOME / 'memory.duckdb'
+DATABASE_PATH: Final[Path] = CLEM_HOME / "memory.duckdb"
 
 #: Claude Code projects directory (source of truth)
-CLAUDE_PROJECTS_DIR: Final[Path] = Path('~/.claude/projects/').expanduser()
+CLAUDE_PROJECTS_DIR: Final[Path] = Path("~/.claude/projects/").expanduser()
 
 #: User home directory (for path normalization)
 HOME_DIR: Final[Path] = Path.home()
@@ -25,10 +25,10 @@ HOME_DIR: Final[Path] = Path.home()
 # === Model Configuration ===
 
 #: Sentence transformer model for embeddings
-EMBEDDING_MODEL: Final[str] = 'sentence-transformers/all-MiniLM-L6-v2'
+EMBEDDING_MODEL: Final[str] = "sentence-transformers/all-MiniLM-L6-v2"
 
 #: Flan-T5 model for memory extraction
-EXTRACTION_MODEL: Final[str] = 'google/flan-t5-base'
+EXTRACTION_MODEL: Final[str] = "google/flan-t5-base"
 
 #: Embedding vector dimensionality
 EMBEDDING_DIM: Final[int] = 384
@@ -38,10 +38,10 @@ EMBEDDING_DIM: Final[int] = 384
 
 #: Topics for memory extraction
 MEMORY_TOPICS: Final[list[str]] = [
-    'facts',        # Factual information about the project
-    'preferences',  # User preferences and patterns
-    'goals',        # Project goals and objectives
-    'patterns',     # Code patterns and architectural decisions
+    "facts",  # Factual information about the project
+    "preferences",  # User preferences and patterns
+    "goals",  # Project goals and objectives
+    "patterns",  # Code patterns and architectural decisions
 ]
 
 
@@ -60,13 +60,13 @@ EMBEDDING_BATCH_SIZE: Final[int] = 32
 # === Database ===
 
 #: Schema version for tracking migrations/rebuilds
-SCHEMA_VERSION: Final[str] = '1.0.0'
+SCHEMA_VERSION: Final[str] = "1.0.0"
 
 #: VSS index parameters
 VSS_INDEX_PARAMS: Final[dict] = {
-    'metric': 'cosine',
-    'ef_construction': 128,
-    'M': 16,
+    "metric": "cosine",
+    "ef_construction": 128,
+    "M": 16,
 }
 
 

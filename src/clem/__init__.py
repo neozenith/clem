@@ -8,4 +8,4 @@ __version__ = "0.1.0"
 from .database.builder import DatabaseBuilder
 from .database.manager import DatabaseManager
 
-__all__ = ['DatabaseBuilder', 'DatabaseManager', '__version__']
+__all__ = ["DatabaseBuilder", "DatabaseManager", "__version__"]

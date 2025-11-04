@@ -4,17 +4,18 @@ Discovers projects by scanning Claude Code session directories and extracting
 cwd information from session files.
 """
 
-import json
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import NamedTuple
+
 import duckdb
 
 from ..config import CLAUDE_PROJECTS_DIR
-from .domain import extract_domain_and_project, generate_project_id, encode_to_claude_id
+from .domain import encode_to_claude_id, extract_domain_and_project, generate_project_id
 
 
 class ProjectInfo(NamedTuple):
     """Information about a discovered project."""
+
     project_id: str
     project_name: str
     domain_path: str
@@ -23,7 +24,7 @@ class ProjectInfo(NamedTuple):
     session_files: list[Path]
 
 
-def get_cwd_from_session(session_file: Path) -> Optional[str]:
+def get_cwd_from_session(session_file: Path) -> str | None:
     """Extract cwd from a session file.
 
     Reads the session file and finds the first event with a cwd field.
@@ -36,7 +37,7 @@ def get_cwd_from_session(session_file: Path) -> Optional[str]:
         Current working directory from session, or None if not found
     """
     try:
-        conn = duckdb.connect(':memory:')
+        conn = duckdb.connect(":memory:")
         result = conn.execute(f"""
             SELECT cwd
             FROM read_ndjson_auto('{session_file}')
@@ -86,7 +87,7 @@ def discover_projects() -> dict[str, ProjectInfo]:
         claude_project_id = project_dir.name
 
         # Find all session files in this project
-        session_files = list(project_dir.glob('*.jsonl'))
+        session_files = list(project_dir.glob("*.jsonl"))
         if not session_files:
             continue
 
@@ -140,7 +141,7 @@ def get_project_sessions(project_dir: Path) -> list[Path]:
     if not project_dir.exists() or not project_dir.is_dir():
         return []
 
-    return sorted(project_dir.glob('*.jsonl'))
+    return sorted(project_dir.glob("*.jsonl"))
 
 
 def get_unique_domains(projects: dict[str, ProjectInfo]) -> dict[str, list[ProjectInfo]]:

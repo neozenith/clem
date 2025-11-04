@@ -12,6 +12,7 @@ from ..config import HOME_DIR
 
 class DomainProject(NamedTuple):
     """Domain and project information extracted from path."""
+
     domain_path: str
     project_name: str
     full_path: str
@@ -59,24 +60,24 @@ def extract_domain_and_project(cwd: str, home_dir: Path = HOME_DIR) -> DomainPro
 
     # Strip home directory prefix
     if cwd.startswith(home_str):
-        rel_path = cwd[len(home_str):].lstrip('/')
+        rel_path = cwd[len(home_str) :].lstrip("/")
     else:
         rel_path = cwd
 
     # Split into segments
-    segments = [s for s in rel_path.split('/') if s]
+    segments = [s for s in rel_path.split("/") if s]
 
     # Handle edge cases
     if not segments:
-        return DomainProject('', '', cwd)
+        return DomainProject("", "", cwd)
 
     if len(segments) == 1:
         # No domain, just project (e.g., ~/myproject)
-        return DomainProject('', segments[0], cwd)
+        return DomainProject("", segments[0], cwd)
 
     # Standard case: domain = all but last, project = last
     project_name = segments[-1]
-    domain_path = '/'.join(segments[:-1])
+    domain_path = "/".join(segments[:-1])
 
     return DomainProject(domain_path, project_name, cwd)
 
@@ -104,7 +105,7 @@ def encode_to_claude_id(path: str) -> str:
         This encoding is lossy - cannot reliably decode back to original path
         if the path contains hyphens (e.g., 'adk-samples' vs 'adk/samples').
     """
-    return path.replace('/', '-')
+    return path.replace("/", "-")
 
 
 def verify_encoding(cwd: str, claude_project_id: str) -> bool:

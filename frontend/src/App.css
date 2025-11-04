@@ -1,0 +1,212 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.app-header {
+  margin-bottom: 2rem;
+}
+
+.app-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #646cff;
+}
+
+.app-subtitle {
+  font-size: 1rem;
+  color: #888;
+  margin: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.domains-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.domain-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.domain-card:hover {
+  border-color: #646cff;
+  transform: translateY(-2px);
+}
+
+.domain-card.selected {
+  border-color: #646cff;
+  background: #252550;
+}
+
+.domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.domain-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.domain-counts {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.projects-list {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid #333;
+}
+
+.project-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #2a2a2a;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-item:hover {
+  background: #333;
+}
+
+.project-item.selected {
+  background: #404070;
+  border-left: 3px solid #646cff;
+}
+
+.project-name {
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.project-info {
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.sessions-list {
+  margin-top: 1rem;
+}
+
+.session-item {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.session-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #646cff;
+}
+
+.session-info {
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+}
+
+.error {
+  background: #ff4444;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+  color: #fff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #888;
+}

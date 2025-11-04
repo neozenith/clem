@@ -167,6 +167,33 @@ def cmd_sessions(args) -> int:
         manager.close()
 
 
+def cmd_web(args) -> int:
+    """Start web server."""
+    import webbrowser
+
+    import uvicorn
+
+    from .web import create_app
+
+    console.print("\n[bold]CLEM - Starting Web Server[/bold]\n")
+
+    host = args.host
+    port = args.port
+    open_browser = not args.no_browser
+
+    console.print(f"[cyan]Starting server at http://{host}:{port}[/cyan]")
+    console.print(f"[dim]API docs: http://{host}:{port}/api/docs[/dim]\n")
+
+    if open_browser:
+        console.print("[dim]Opening browser...[/dim]\n")
+        webbrowser.open(f"http://{host}:{port}/api/docs")
+
+    app = create_app()
+    uvicorn.run(app, host=host, port=port, log_level="info")
+
+    return 0
+
+
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -205,6 +232,19 @@ def main() -> int:
         "--limit", type=int, default=20, help="Limit number of results (default: 20)"
     )
     parser_sessions.set_defaults(func=cmd_sessions)
+
+    # web command
+    parser_web = subparsers.add_parser("web", help="Start web server")
+    parser_web.add_argument(
+        "--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)"
+    )
+    parser_web.add_argument(
+        "--port", type=int, default=8000, help="Port to bind to (default: 8000)"
+    )
+    parser_web.add_argument(
+        "--no-browser", action="store_true", help="Don't open browser automatically"
+    )
+    parser_web.set_defaults(func=cmd_web)
 
     args = parser.parse_args()
 

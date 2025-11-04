@@ -81,35 +81,45 @@ Track progress toward the vision outlined in [NEW_VISION.md](NEW_VISION.md).
 
 ---
 
-## 🚧 Phase 3: Web UI & Observability (PLANNED)
+## 🚧 Phase 3: Web UI & Observability (IN PROGRESS - Backend Complete ✅)
 
 **Goal**: Visual interface for exploring sessions and events.
 
 **From NEW_VISION.md**:
 > `uvx clem web` should start a local web server which will start a locally run FastAPI webserver which will host our frontend webapp. It will be a plain React application built with Vite that interacts the FastAPI webserver which holds the logic for interacting with the knowledge base we will be curating.
 
-### Planned Work
-- [ ] **FastAPI backend** (src/clem/web/)
-  - REST API endpoints leveraging existing queries layer
-  - WebSocket support for live session monitoring
-  - CORS configuration for local React dev server
+### Completed Work ✅
+- [x] **FastAPI backend** (src/clem/web/)
+  - REST API endpoints: /api/stats, /api/domains, /api/projects, /api/sessions
+  - Pydantic models for request/response validation
+  - CORS configuration for local React dev server (localhost:5173, localhost:3000)
+  - OpenAPI/Swagger documentation at /api/docs
+  - Health check endpoint at /api/health
 
+- [x] **CLI integration**
+  - `clem web` command to start uvicorn server
+  - Port configuration (--port, default: 8000)
+  - Host configuration (--host, default: 127.0.0.1)
+  - Auto-open browser option (--no-browser to disable)
+
+- [x] **API Tests**
+  - 16 new endpoint tests (102 total tests passing)
+  - 81% overall coverage (up from 80%)
+  - Full test coverage for all API routes
+
+### Remaining Work
 - [ ] **React frontend** (frontend/)
   - Vite + React setup
   - Domain/Project/Session hierarchy navigation
   - Session event timeline visualization
-  - Live event streaming (optional)
+  - Live event streaming (optional WebSocket support)
 
-- [ ] **CLI integration**
-  - `clem web` command to start server
-  - Port configuration (default: 8000)
-  - Auto-open browser option
-
-### Architecture Notes
-- Leverage existing queries/ layer for business logic
-- FastAPI purely for API routing and WebSocket
-- React SPA with client-side routing
-- No database changes required
+### Architecture Decisions
+- ✅ Leveraged existing queries/ layer for business logic (no duplication)
+- ✅ FastAPI purely for API routing (clean separation)
+- ✅ REST-first approach (WebSocket deferred to future)
+- ✅ Type-safe Pydantic models
+- ✅ Monkeypatch-based testing with test database isolation
 
 ---
 

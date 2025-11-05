@@ -47,3 +47,16 @@ class HealthResponse(BaseModel):
 
     status: str = Field(..., description="Health status")
     service: str = Field(..., description="Service name")
+
+
+class EventResponse(BaseModel):
+    """Event response from session."""
+
+    timestamp: str | None = Field(None, description="Event timestamp")
+    type: str | None = Field(None, description="Event type")
+    role: str | None = Field(None, description="Message role (user/assistant)")
+    content: str | None = Field(None, description="Message content")
+    tool_name: str | None = Field(None, description="Tool name if tool use")
+    tool_input: str | None = Field(None, description="Tool input if tool use")
+    tool_output: str | None = Field(None, description="Tool output if tool use")
+    error: str | None = Field(None, description="Error message if error occurred")

@@ -129,7 +129,7 @@ class TestFormatSessionTable:
 
     def test_format_single_session(self):
         """Test formatting single session."""
-        sessions = [SessionStats("abc123def456", "clem", "play", 42, "2024-01-01T10:00:00")]
+        sessions = [SessionStats("abc123def456", "clem", "play", 42, "2024-01-01T10:00:00", "/path/to/session.jsonl")]
 
         table = format_session_table(sessions)
 
@@ -138,8 +138,8 @@ class TestFormatSessionTable:
     def test_format_multiple_sessions(self):
         """Test formatting multiple sessions."""
         sessions = [
-            SessionStats("session1", "clem", "play", 42, "2024-01-01T10:00:00"),
-            SessionStats("session2", "api", "work", 38, "2024-01-02T11:30:00"),
+            SessionStats("session1", "clem", "play", 42, "2024-01-01T10:00:00", "/path/to/session1.jsonl"),
+            SessionStats("session2", "api", "work", 38, "2024-01-02T11:30:00", "/path/to/session2.jsonl"),
         ]
 
         table = format_session_table(sessions)
@@ -148,7 +148,7 @@ class TestFormatSessionTable:
 
     def test_format_session_without_started_at(self):
         """Test formatting session with no start time."""
-        sessions = [SessionStats("session1", "clem", "play", 42, None)]
+        sessions = [SessionStats("session1", "clem", "play", 42, None, "/path/to/session.jsonl")]
 
         table = format_session_table(sessions)
 
@@ -156,7 +156,7 @@ class TestFormatSessionTable:
 
     def test_format_empty_domain_path(self):
         """Test formatting session with empty domain."""
-        sessions = [SessionStats("session1", "standalone", "", 42, "2024-01-01T10:00:00")]
+        sessions = [SessionStats("session1", "standalone", "", 42, "2024-01-01T10:00:00", "/path/to/session.jsonl")]
 
         table = format_session_table(sessions)
 

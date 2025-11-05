@@ -13,6 +13,7 @@ class SessionStats(NamedTuple):
     domain_path: str
     event_count: int
     started_at: str | None
+    file_path: str
 
 
 class SessionQuery:
@@ -51,7 +52,8 @@ class SessionQuery:
                 p.project_name,
                 d.domain_path,
                 s.event_count,
-                s.started_at
+                s.started_at,
+                s.file_path
             FROM sessions s
             JOIN projects p ON s.project_id = p.project_id
             JOIN domains d ON s.domain_id = d.domain_id
@@ -91,7 +93,8 @@ class SessionQuery:
                 p.project_name,
                 d.domain_path,
                 s.event_count,
-                s.started_at
+                s.started_at,
+                s.file_path
             FROM sessions s
             JOIN projects p ON s.project_id = p.project_id
             JOIN domains d ON s.domain_id = d.domain_id

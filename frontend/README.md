@@ -20,7 +20,7 @@ npm run preview
 
 ## Development
 
-The frontend connects to the FastAPI backend running on `http://127.0.0.1:8000`.
+The frontend connects to the FastAPI backend running on `http://localhost:8000`.
 
 Make sure the backend is running:
 ```bash

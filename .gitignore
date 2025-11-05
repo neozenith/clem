@@ -215,3 +215,8 @@ tmp/
 # Test coverage reports
 htmlcov/
 .coverage
+
+# Frontend build artifacts
+src/clem/web/frontend/
+
+.playwright-mcp/

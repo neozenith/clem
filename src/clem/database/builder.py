@@ -249,30 +249,37 @@ class DatabaseBuilder:
         try:
             conn = duckdb.connect(":memory:")
 
-            # Get git branch
-            git_branch_result = conn.execute(f"""
-                SELECT gitBranch
-                FROM read_ndjson_auto('{session_file}')
-                WHERE gitBranch IS NOT NULL
-                LIMIT 1
-            """).fetchone()
+            # Get git branch - wrap in try/except since column might not exist
+            git_branch = None
+            try:
+                git_branch_result = conn.execute(f"""
+                    SELECT gitBranch
+                    FROM read_ndjson_auto('{session_file}')
+                    WHERE gitBranch IS NOT NULL
+                    LIMIT 1
+                """).fetchone()
+                git_branch = git_branch_result[0] if git_branch_result else None
+            except Exception:
+                # Column doesn't exist in this file - that's okay
+                pass
 
-            git_branch = git_branch_result[0] if git_branch_result else None
+            # Get timestamp range and count - wrap in try/except since column might not exist
+            started_at, last_event_at, event_count = None, None, 0
+            try:
+                stats_result = conn.execute(f"""
+                    SELECT
+                        MIN(timestamp) as started_at,
+                        MAX(timestamp) as last_event_at,
+                        COUNT(*) as event_count
+                    FROM read_ndjson_auto('{session_file}')
+                    WHERE timestamp IS NOT NULL
+                """).fetchone()
 
-            # Get timestamp range and count
-            stats_result = conn.execute(f"""
-                SELECT
-                    MIN(timestamp) as started_at,
-                    MAX(timestamp) as last_event_at,
-                    COUNT(*) as event_count
-                FROM read_ndjson_auto('{session_file}')
-                WHERE timestamp IS NOT NULL
-            """).fetchone()
-
-            if stats_result:
-                started_at, last_event_at, event_count = stats_result
-            else:
-                started_at, last_event_at, event_count = None, None, 0
+                if stats_result:
+                    started_at, last_event_at, event_count = stats_result
+            except Exception:
+                # Column doesn't exist in this file - that's okay
+                pass
 
             return {
                 "git_branch": git_branch,
@@ -282,7 +289,7 @@ class DatabaseBuilder:
             }
 
         except Exception as e:
-            print(f"Warning: Could not extract metadata from {session_file}: {e}")
+            print(f"Warning: Could not extract session stats from {session_file}: {e}")
             return {}
 
     def get_stats(self) -> dict:

@@ -181,12 +181,15 @@ def cmd_web(args) -> int:
     port = args.port
     open_browser = not args.no_browser
 
-    console.print(f"[cyan]Starting server at http://{host}:{port}[/cyan]")
-    console.print(f"[dim]API docs: http://{host}:{port}/api/docs[/dim]\n")
+    # Use localhost for browser URL (Chrome restrictions on IP addresses)
+    browser_host = "localhost" if host in ("127.0.0.1", "0.0.0.0", "localhost") else host
+
+    console.print(f"[cyan]Starting server at http://{browser_host}:{port}[/cyan]")
+    console.print(f"[dim]API docs: http://{browser_host}:{port}/api/docs[/dim]\n")
 
     if open_browser:
         console.print("[dim]Opening browser...[/dim]\n")
-        webbrowser.open(f"http://{host}:{port}/api/docs")
+        webbrowser.open(f"http://{browser_host}:{port}")
 
     app = create_app()
     uvicorn.run(app, host=host, port=port, log_level="info")

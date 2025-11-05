@@ -96,7 +96,7 @@ def format_session_table(sessions: list[SessionStats]) -> Table:
         Formatted Rich Table
 
     Example:
-        >>> sessions = [SessionStats("abc123", "clem", "play", 42, "2024-01-01T10:00:00")]
+        >>> sessions = [SessionStats("abc123", "clem", "play", 42, "2024-01-01T10:00:00", "/path/to/session.jsonl")]
         >>> table = format_session_table(sessions)
     """
     table = Table(show_header=True)

@@ -32,3 +32,14 @@ export interface Session {
   event_count: number;
   started_at: string | null;
 }
+
+export interface Event {
+  timestamp: string | null;
+  type: string | null;
+  role: string | null;
+  content: string | null;
+  tool_name: string | null;
+  tool_input: string | null;
+  tool_output: string | null;
+  error: string | null;
+}

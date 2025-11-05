@@ -210,3 +210,86 @@ body {
   padding: 3rem;
   color: #888;
 }
+
+/* Event detail styles */
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.event-item {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.event-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.event-type {
+  background: #2a2a2a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #646cff;
+  font-weight: 500;
+}
+
+.event-role {
+  background: #2a2a2a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.event-timestamp {
+  font-size: 0.875rem;
+  color: #666;
+  margin-left: auto;
+}
+
+.event-content,
+.event-tool-input,
+.event-tool-output {
+  margin-top: 0.75rem;
+}
+
+.event-content pre,
+.event-tool-input pre,
+.event-tool-output pre {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.event-tool {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.event-error {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #4a1a1a;
+  border: 1px solid #8a2a2a;
+  border-radius: 4px;
+  color: #ff6b6b;
+  font-size: 0.875rem;
+}

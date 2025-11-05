@@ -1,6 +1,8 @@
 # CLEM - Sleep Cycle Makefile
 
-.PHONY: sleepytime sleep-session sleep-project sleep-global sleep-skills help
+.PHONY: help docs
+.PHONY: frontend-install frontend-dev frontend-build frontend-lint frontend-format frontend-test
+.PHONY: frontend-test-watch frontend-test-coverage frontend-storybook frontend-storybook-build
 
 # Ensure the .make folder exists when starting make
 # We need this for build targets that have multiple or no file output.
@@ -17,13 +19,64 @@ init: .make/init
 	uv sync --extra dev
 	@touch $@
 
-test: .make/init
-	@echo "Running tests with coverage..."
+# Frontend targets
+frontend-install: .make/frontend-install
+.make/frontend-install:
+	@echo "📦 Installing frontend dependencies..."
+	npm --prefix frontend install
+	@touch $@
+
+frontend-dev: .make/frontend-install
+	@echo "🚀 Starting frontend dev server..."
+	npm --prefix frontend run dev
+
+frontend-build: .make/frontend-install
+	@echo "🏗️  Building frontend for production..."
+	npm --prefix frontend run build
+	@echo "✓ Frontend built to src/clem/web/frontend/"
+
+frontend-lint: .make/frontend-install
+	@echo "🔍 Linting frontend code (includes format check & typecheck)..."
+	npm --prefix frontend run lint
+	@echo "✓ Frontend linting complete!"
+
+frontend-format: .make/frontend-install
+	@echo "🎨 Formatting frontend code..."
+	npm --prefix frontend run format
+	@echo "✓ Frontend formatting complete!"
+
+frontend-test: .make/frontend-install
+	@echo "🧪 Running frontend tests (Vitest + Playwright)..."
+	npm --prefix frontend run test
+	@echo "✓ Frontend tests complete!"
+
+frontend-test-watch: .make/frontend-install
+	@echo "🧪 Running frontend tests in watch mode..."
+	npm --prefix frontend run test:watch
+
+frontend-test-coverage: .make/frontend-install
+	@echo "📊 Running frontend tests with coverage..."
+	npm --prefix frontend run test:coverage
+
+frontend-storybook: .make/frontend-install
+	@echo "📚 Starting Storybook dev server..."
+	npm --prefix frontend run storybook
+
+frontend-storybook-build: .make/frontend-install
+	@echo "📦 Building Storybook..."
+	npm --prefix frontend run build-storybook
+
+web: frontend-build
+	@echo "🌐 Starting web server..."
+	@uv run clem web
+
+test: .make/init frontend-test
+	@echo "🧪 Running backend tests with coverage..."
 	uv run pytest tests/ -v --cov=src/clem --cov-report=term-missing --cov-report=html
 	@echo "✓ Tests complete. Coverage report: htmlcov/index.html"
 
-lint: .make/init
-	@echo "🔍 Running linters..."
+lint: .make/init frontend-lint
+	@echo "🔍 Running backend linters..."
 	@echo "  → ruff check"
 	@uv run ruff check src/clem
 	@echo "  → ruff format check"
@@ -32,11 +85,14 @@ lint: .make/init
 	@uv run mypy src/clem
 	@echo "✓ All linting checks passed!"
 
-format: .make/init
-	@echo "🎨 Formatting code..."
+format: .make/init frontend-format
+	@echo "🎨 Formatting backend code..."
 	@uv run ruff format src/clem
 	@uv run ruff check --fix src/clem
 	@echo "✓ Code formatted!"
+
+docs:
+	make -C docs/diagrams diagrams
 
 .make/tool-install:
 	# https://docs.astral.sh/uv/guides/tools/#installing-tools
@@ -48,75 +104,6 @@ run: .make/tool-install .make/init
 
 upgrade:
 	@uv tool upgrade clem
-
-
-# Default target
-help:
-	@echo "CLEM Sleep Cycle - Incremental Intelligence Consolidation"
-	@echo ""
-	@echo "Usage:"
-	@echo "  make sleepytime        Run complete sleep cycle (all levels)"
-	@echo "  make sleep-session     Level 1: Extract session memories"
-	@echo "  make sleep-project     Level 2: Consolidate project knowledge (BDD.md)"
-	@echo "  make sleep-global      Level 3: Synthesize global patterns"
-	@echo "  make sleep-skills      Level 4: Generate skill updates"
-	@echo ""
-	@echo "Hierarchy:"
-	@echo "  Session (minutes) → Project (hours) → Global (weeks) → Skills (continuous)"
-	@echo ""
-	@echo "Example: make -C .claude/scripts/clem sleepytime"
-
-# Complete sleep cycle - all hierarchical levels
-sleepytime: sleep-session sleep-project sleep-global sleep-skills
-	@echo ""
-	@echo "✅ Sleep cycle complete! Knowledge consolidated across all levels."
-	@echo ""
-	@echo "Generated artifacts:"
-	@echo "  - Session memories: ~/.claude/memories.duckdb"
-	@echo "  - Project knowledge: BDD.md"
-	@echo "  - Global patterns: ~/.claude/misc/PATTERNS.md"
-	@echo "  - Lessons learned: ~/.claude/misc/LESSONS.md"
-	@echo "  - Skills: ~/.claude/misc/SKILLS.md"
-	@echo ""
-
-# Level 1: Session Memory Extraction (existing functionality)
-sleep-session:
-	@echo "💤 Level 1: Extracting session memories..."
-	@uv run $(PWD)/clem.py memory-extract --scope session --user $(USER)
-	@echo "✓ Session memories extracted"
-
-# Level 2: Project Knowledge Consolidation
-sleep-project:
-	@echo "📋 Level 2: Consolidating project knowledge..."
-	@uv run $(PWD)/clem.py sleep --level project
-	@echo "✓ Project knowledge consolidated (BDD.md)"
-
-# Level 3: Global Pattern Recognition
-sleep-global:
-	@echo "🌐 Level 3: Recognizing global patterns..."
-	@uv run $(PWD)/clem.py sleep --level global
-	@echo "✓ Global patterns synthesized"
-
-# Level 4: Skill Synthesis
-sleep-skills:
-	@echo "🧠 Level 4: Synthesizing skills..."
-	@uv run $(PWD)/clem.py sleep --level skills
-	@echo "✓ Skill updates generated"
-
-# Quick sleep - session and project only (faster iteration)
-quick-sleep: sleep-session sleep-project
-	@echo "✅ Quick sleep complete (session + project)"
-
-# Deep sleep - include global and skills (comprehensive)
-deep-sleep: sleepytime
-	@echo "✅ Deep sleep complete (all levels)"
-
-# Validate sleep cycle setup
-validate:
-	@echo "Validating CLEM sleep cycle setup..."
-	@command -v uv >/dev/null 2>&1 || { echo "❌ uv not found. Install: pip install uv"; exit 1; }
-	@test -f $(PWD)/clem.py || { echo "❌ clem.py not found in $(PWD)"; exit 1; }
-	@echo "✅ Setup validated"
 
 # Show current memory statistics
 stats:
@@ -138,6 +125,9 @@ clean:
 		rm -rf ~/.clem/; \
 		rm -rf htmlcov/; \
 		rm -f .coverage; \
+		rm -rf src/clem/web/frontend/; \
+		rm -rf frontend/node_modules/; \
+		rm -rf .make/; \
 		echo "✓ Artifacts cleaned"; \
 	else \
 		echo "Cancelled"; \

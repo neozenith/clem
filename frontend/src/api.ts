@@ -2,7 +2,7 @@
  * API client for CLEM backend
  */
 
-import { Stats, Domain, Project, Session } from './types';
+import { Stats, Domain, Project, Session, Event } from './types';
 
 const API_BASE = '/api';
 
@@ -30,11 +30,7 @@ export const api = {
   getProject: (projectId: string) => fetchJson<Project>(`${API_BASE}/projects/${projectId}`),
 
   // Sessions
-  listSessions: (options?: {
-    projectName?: string;
-    domainId?: string;
-    limit?: number;
-  }) => {
+  listSessions: (options?: { projectName?: string; domainId?: string; limit?: number }) => {
     const params = new URLSearchParams();
     if (options?.projectName) params.append('project_name', options.projectName);
     if (options?.domainId) params.append('domain_id', options.domainId);
@@ -44,4 +40,22 @@ export const api = {
     return fetchJson<Session[]>(`${API_BASE}/sessions${query ? `?${query}` : ''}`);
   },
   getSession: (sessionId: string) => fetchJson<Session>(`${API_BASE}/sessions/${sessionId}`),
+
+  // Events
+  getSessionEvents: (
+    sessionId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+    }
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.limit) params.append('limit', options.limit.toString());
+    if (options?.offset) params.append('offset', options.offset.toString());
+
+    const query = params.toString();
+    return fetchJson<Event[]>(
+      `${API_BASE}/sessions/${sessionId}/events${query ? `?${query}` : ''}`
+    );
+  },
 };

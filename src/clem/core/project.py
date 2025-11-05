@@ -46,8 +46,8 @@ def get_cwd_from_session(session_file: Path) -> str | None:
         """).fetchone()
 
         return result[0] if result else None
-    except Exception as e:
-        print(f"Warning: Could not read cwd from {session_file}: {e}")
+    except Exception:
+        # Column doesn't exist in this file - that's okay
         return None
 
 

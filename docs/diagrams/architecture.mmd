@@ -1,0 +1,84 @@
+graph TB
+    subgraph "Claude Code IDE"
+        CC[Claude Code Session]
+        CLS[~/.claude/ Storage]
+    end
+
+    subgraph "CLEM Core System"
+        CLI[CLI Interface<br/>clem.py]
+        WEB[Web Interface<br/>FastAPI + React]
+
+        subgraph "Data Layer"
+            DB[DuckDB Engine]
+            JSONL[JSONL Session Files]
+            MEM_DB[(Memory DB<br/>memories.duckdb)]
+            EMB_DB[(Embeddings DB<br/>embeddings.duckdb)]
+        end
+
+        subgraph "Processing Layer"
+            DISC[Project Discovery]
+            QUERY[Query Engine]
+            MEMEXT[Memory Extraction<br/>Flan-T5]
+            EMBGEN[Embedding Generator<br/>all-MiniLM-L6-v2]
+            CONS[Memory Consolidation<br/>Vector Similarity]
+        end
+
+        subgraph "Domain Model"
+            DOM[Domain Hierarchy]
+            PROJ[Projects]
+            SESS[Sessions]
+            EVENTS[Events/Messages]
+            MEMS[Memories]
+        end
+    end
+
+    subgraph "Knowledge Artifacts"
+        BDD[BDD.md<br/>Project Requirements]
+        PATTERNS[.claude/misc/PATTERNS.md]
+        LESSONS[.claude/misc/LESSONS.md]
+        SKILLS[.claude/misc/SKILLS.md]
+    end
+
+    CC -->|writes| CLS
+    CLS -->|contains| JSONL
+
+    CLI --> DISC
+    CLI --> QUERY
+    CLI --> MEMEXT
+    CLI --> EMBGEN
+    WEB --> QUERY
+    WEB --> DISC
+
+    DISC -->|scans| JSONL
+    DISC -->|builds| DOM
+    DOM --> PROJ
+    PROJ --> SESS
+    SESS --> EVENTS
+
+    QUERY --> DB
+    DB -->|reads| JSONL
+
+    MEMEXT -->|extracts from| EVENTS
+    MEMEXT --> CONS
+    CONS -->|stores| MEMS
+    MEMS --> MEM_DB
+
+    EMBGEN -->|indexes| EVENTS
+    EMBGEN --> EMB_DB
+
+    CONS -->|consolidates to| BDD
+    CONS -->|synthesizes| PATTERNS
+    CONS -->|learns| LESSONS
+    CONS -->|evolves| SKILLS
+
+    classDef storage fill:#e1f5ff,stroke:#0066cc
+    classDef processing fill:#fff4e1,stroke:#cc8800
+    classDef interface fill:#e8f5e8,stroke:#00aa00
+    classDef model fill:#f5e1ff,stroke:#8800cc
+    classDef artifacts fill:#ffe1e1,stroke:#cc0000
+
+    class CLS,JSONL,MEM_DB,EMB_DB storage
+    class DISC,QUERY,MEMEXT,EMBGEN,CONS processing
+    class CLI,WEB,CC interface
+    class DOM,PROJ,SESS,EVENTS,MEMS model
+    class BDD,PATTERNS,LESSONS,SKILLS artifacts

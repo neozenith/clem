@@ -1,0 +1,89 @@
+graph TB
+    subgraph "Input Sources"
+        CONV[Recent Conversations<br/>Session .jsonl Files]
+        PROJ_CONV[Project Sessions<br/>All Project .jsonl]
+        ALL_CONV[Cross-Project Data<br/>All .jsonl Files]
+    end
+
+    subgraph "Level 1: Session Memory (Minutes)"
+        L1[Session Memory Extraction]
+        FLAN[Flan-T5 Model<br/>Topic Classification]
+        VEC[Vector Similarity<br/>384-dim Embeddings]
+        DED[Deduplication<br/>ADD/UPDATE/IGNORE]
+        MEM_OUT[(memories.duckdb)]
+    end
+
+    subgraph "Level 2: Project Knowledge (Hours/Days)"
+        L2[Project Consolidation]
+        REQ[Requirement Synthesis<br/>Implicit → Explicit]
+        ARCH[Architecture Extraction<br/>Decisions & Rationale]
+        BDD_OUT[BDD.md<br/>Business & Technical]
+    end
+
+    subgraph "Level 3: Global Learning (Weeks/Months)"
+        L3[Cross-Project Analysis]
+        PAT[Pattern Recognition<br/>Recurring Solutions]
+        ANTI[Anti-Pattern Detection<br/>What to Avoid]
+        BEST[Best Practice Synthesis<br/>Proven Approaches]
+
+        PAT_OUT[.claude/misc/PATTERNS.md]
+        LESS_OUT[.claude/misc/LESSONS.md]
+        SKILL_OUT[.claude/misc/SKILLS.md]
+        ANTI_OUT[.claude/misc/ANTI_PATTERNS.md]
+    end
+
+    subgraph "Level 4: Skill Evolution (Continuous)"
+        L4[Meta-Learning]
+        PERS[Persona Analysis<br/>Usage Patterns]
+        CMD[Command Synthesis<br/>New Workflows]
+        FRAME[Framework Updates<br/>SuperClaude Evolution]
+
+        PERS_OUT[PERSONAS.md Updates]
+        CMD_OUT[COMMANDS.md Updates]
+    end
+
+    CONV --> L1
+    L1 --> FLAN
+    FLAN --> VEC
+    VEC --> DED
+    DED --> MEM_OUT
+
+    PROJ_CONV --> L2
+    MEM_OUT -.->|informs| L2
+    L2 --> REQ
+    L2 --> ARCH
+    REQ --> BDD_OUT
+    ARCH --> BDD_OUT
+
+    ALL_CONV --> L3
+    BDD_OUT -.->|aggregates| L3
+    L3 --> PAT
+    L3 --> ANTI
+    L3 --> BEST
+    PAT --> PAT_OUT
+    ANTI --> ANTI_OUT
+    BEST --> LESS_OUT
+    BEST --> SKILL_OUT
+
+    PAT_OUT --> L4
+    LESS_OUT --> L4
+    SKILL_OUT --> L4
+    L4 --> PERS
+    L4 --> CMD
+    L4 --> FRAME
+    PERS --> PERS_OUT
+    CMD --> CMD_OUT
+
+    classDef input fill:#e1f5ff,stroke:#0066cc
+    classDef level1 fill:#e8f5e8,stroke:#00aa00
+    classDef level2 fill:#fff4e1,stroke:#cc8800
+    classDef level3 fill:#f5e1ff,stroke:#8800cc
+    classDef level4 fill:#ffe1e1,stroke:#cc0000
+    classDef output fill:#f0f0f0,stroke:#666666
+
+    class CONV,PROJ_CONV,ALL_CONV input
+    class L1,FLAN,VEC,DED level1
+    class L2,REQ,ARCH level2
+    class L3,PAT,ANTI,BEST level3
+    class L4,PERS,CMD,FRAME level4
+    class MEM_OUT,BDD_OUT,PAT_OUT,LESS_OUT,SKILL_OUT,ANTI_OUT,PERS_OUT,CMD_OUT output

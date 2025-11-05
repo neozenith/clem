@@ -1,0 +1,93 @@
+graph TB
+    subgraph "Client Layer (React + TypeScript)"
+        BROWSER[Web Browser]
+
+        subgraph "React Application"
+            ROUTER[React Router<br/>Client-side Routing]
+            DASH[Dashboard Page<br/>Stats Overview]
+            DOM_LIST[Domain List<br/>Hierarchy View]
+            PROJ_LIST[Project List<br/>Sessions View]
+            SESS_DETAIL[Session Detail<br/>Events Timeline]
+        end
+
+        API_CLIENT[API Client<br/>Fetch/Axios]
+    end
+
+    subgraph "Server Layer (FastAPI + Python)"
+        FASTAPI["FastAPI Application<br/>create_app()"]
+        CORS["CORS Middleware"]
+        STATIC["Static File Server<br/>/assets, index.html"]
+
+        subgraph "API Routes"
+            STATS_API["/api/stats"]
+            DOM_API["/api/domains"]
+            PROJ_API["/api/projects"]
+            SESS_API["/api/sessions"]
+            EVT_API["/api/sessions/:id/events"]
+        end
+
+        subgraph "Business Logic"
+            STATS_SVC[Statistics Service]
+            DOM_SVC[Domain Service]
+            PROJ_SVC[Project Service]
+            SESS_SVC[Session Service]
+            EVT_SVC[Event Service]
+        end
+    end
+
+    subgraph "Data Layer"
+        DISC["Project Discovery"]
+        DUCK["DuckDB Query Engine"]
+        JSONL_FILES["~/.claude/projects/<br/>*.jsonl Files"]
+        MEM_DB[("memories.duckdb")]
+        EMB_DB[("embeddings.duckdb")]
+    end
+
+    BROWSER --> ROUTER
+    ROUTER --> DASH
+    ROUTER --> DOM_LIST
+    ROUTER --> PROJ_LIST
+    ROUTER --> SESS_DETAIL
+
+    DASH --> API_CLIENT
+    DOM_LIST --> API_CLIENT
+    PROJ_LIST --> API_CLIENT
+    SESS_DETAIL --> API_CLIENT
+
+    API_CLIENT -->|HTTP GET/POST| FASTAPI
+    FASTAPI --> CORS
+    FASTAPI --> STATIC
+    FASTAPI --> STATS_API
+    FASTAPI --> DOM_API
+    FASTAPI --> PROJ_API
+    FASTAPI --> SESS_API
+    FASTAPI --> EVT_API
+
+    STATS_API --> STATS_SVC
+    DOM_API --> DOM_SVC
+    PROJ_API --> PROJ_SVC
+    SESS_API --> SESS_SVC
+    EVT_API --> EVT_SVC
+
+    STATS_SVC --> DISC
+    DOM_SVC --> DISC
+    PROJ_SVC --> DISC
+    SESS_SVC --> DISC
+    EVT_SVC --> DUCK
+
+    DISC --> JSONL_FILES
+    DUCK --> JSONL_FILES
+    DUCK --> MEM_DB
+    DUCK --> EMB_DB
+
+    classDef client fill:#e1f5ff,stroke:#0066cc
+    classDef server fill:#e8f5e8,stroke:#00aa00
+    classDef api fill:#fff4e1,stroke:#cc8800
+    classDef service fill:#f5e1ff,stroke:#8800cc
+    classDef data fill:#ffe1e1,stroke:#cc0000
+
+    class BROWSER,ROUTER,DASH,DOM_LIST,PROJ_LIST,SESS_DETAIL,API_CLIENT client
+    class FASTAPI,CORS,STATIC server
+    class STATS_API,DOM_API,PROJ_API,SESS_API,EVT_API api
+    class STATS_SVC,DOM_SVC,PROJ_SVC,SESS_SVC,EVT_SVC service
+    class DISC,DUCK,JSONL_FILES,MEM_DB,EMB_DB data

@@ -1,0 +1,70 @@
+sequenceDiagram
+    participant User
+    participant CLI
+    participant Web
+    participant Discovery
+    participant DuckDB
+    participant Sessions
+    participant Extractor
+    participant Embeddings
+    participant Memory
+
+    Note over User,Memory: Query Flow (Stats/List/Search)
+    User->>CLI: clem stats --scope project
+    CLI->>Discovery: discover_projects()
+    Discovery->>Sessions: scan ~/.claude/projects/
+    Sessions-->>Discovery: session .jsonl files
+    Discovery->>DuckDB: read_ndjson_auto()
+    DuckDB-->>Discovery: parsed events
+    Discovery-->>CLI: aggregated statistics
+    CLI-->>User: formatted table output
+
+    Note over User,Memory: Web Interface Flow
+    User->>Web: GET /api/domains
+    Web->>Discovery: discover_projects()
+    Discovery->>Sessions: scan project directories
+    Sessions-->>Discovery: project metadata
+    Discovery-->>Web: domain hierarchy
+    Web-->>User: JSON response
+
+    Note over User,Memory: Memory Extraction Flow
+    User->>CLI: clem memory-extract --scope session
+    CLI->>DuckDB: read session messages
+    DuckDB-->>CLI: message content
+    CLI->>Extractor: extract_memories(messages)
+    Extractor->>Extractor: Flan-T5 inference
+    Extractor-->>CLI: candidate memories
+    CLI->>Memory: consolidate_memory()
+    Memory->>Embeddings: generate_embedding()
+    Embeddings-->>Memory: 384-dim vector
+    Memory->>Memory: similarity_search()
+    Memory->>Memory: decision (ADD/UPDATE/IGNORE)
+    Memory->>Memory: store in memories.duckdb
+    Memory-->>CLI: consolidation result
+    CLI-->>User: memory statistics
+
+    Note over User,Memory: Semantic Search Flow
+    User->>CLI: clem semantic "authentication"
+    CLI->>Embeddings: generate_query_embedding()
+    Embeddings-->>CLI: query vector
+    CLI->>Memory: vector_similarity_search()
+    Memory->>DuckDB: VSS extension query
+    DuckDB-->>Memory: ranked results
+    Memory-->>CLI: similar messages
+    CLI-->>User: formatted results
+
+    Note over User,Memory: Sleep Cycle Flow
+    User->>CLI: make sleepytime
+    CLI->>Extractor: Level 1: Session Memory
+    Extractor->>Memory: extract + consolidate
+    Memory-->>CLI: memories.duckdb updated
+    CLI->>Extractor: Level 2: Project Knowledge
+    Extractor->>Extractor: synthesize requirements
+    Extractor-->>CLI: BDD.md generated
+    CLI->>Extractor: Level 3: Global Patterns
+    Extractor->>Extractor: cross-project analysis
+    Extractor-->>CLI: .claude/misc/*.md updated
+    CLI->>Extractor: Level 4: Skill Evolution
+    Extractor->>Extractor: meta-learning
+    Extractor-->>CLI: framework updates
+    CLI-->>User: consolidation complete

@@ -1,0 +1,127 @@
+classDiagram
+    class Domain {
+        +string domain_path
+        +int project_count
+        +int session_count
+        +datetime last_activity
+        +List~Project~ projects
+        +get_hierarchy()
+    }
+
+    class Project {
+        +string project_id
+        +string project_name
+        +string domain_path
+        +string cwd
+        +string claude_project_id
+        +int session_count
+        +int message_count
+        +datetime first_activity
+        +datetime last_activity
+        +List~Session~ sessions
+        +get_sessions()
+        +get_statistics()
+    }
+
+    class Session {
+        +string session_id
+        +string project_id
+        +Path session_file
+        +int message_count
+        +int input_tokens
+        +int output_tokens
+        +datetime started_at
+        +datetime last_activity
+        +List~Event~ events
+        +get_events()
+        +get_token_usage()
+    }
+
+    class Event {
+        +string event_id
+        +string session_id
+        +string role
+        +string content
+        +int input_tokens
+        +int output_tokens
+        +datetime timestamp
+        +dict metadata
+        +extract_text()
+    }
+
+    class Memory {
+        +UUID id
+        +string user_id
+        +string topic
+        +string content
+        +array~float~ embedding
+        +float confidence
+        +string session_id
+        +datetime created_at
+        +int version
+        +bool is_active
+        +UUID supersedes
+        +search_similar()
+    }
+
+    class Embedding {
+        +UUID id
+        +string message_id
+        +string session_id
+        +string project_id
+        +array~float~ embedding
+        +string content_preview
+        +datetime indexed_at
+        +similarity_search()
+    }
+
+    class MemoryChange {
+        +UUID id
+        +UUID memory_id
+        +string action
+        +string reason
+        +datetime timestamp
+        +get_audit_trail()
+    }
+
+    class KnowledgeArtifact {
+        <<abstract>>
+        +string artifact_type
+        +Path file_path
+        +datetime generated_at
+        +string content
+        +generate()
+        +update()
+    }
+
+    class BDD {
+        +string project_id
+        +List~Requirement~ business_requirements
+        +List~Constraint~ technical_constraints
+        +List~Decision~ architectural_decisions
+        +synthesize_from_sessions()
+    }
+
+    class PatternLibrary {
+        +List~Pattern~ patterns
+        +extract_from_projects()
+        +categorize_patterns()
+    }
+
+    Domain "1" --> "*" Project : contains
+    Project "1" --> "*" Session : has
+    Session "1" --> "*" Event : contains
+    Event "1" --> "0..1" Memory : generates
+    Event "1" --> "0..1" Embedding : indexed_as
+    Memory "1" --> "*" MemoryChange : tracks
+    Memory "1" --> "0..1" Memory : supersedes
+
+    KnowledgeArtifact <|-- BDD : specializes
+    KnowledgeArtifact <|-- PatternLibrary : specializes
+
+    Project "1" --> "0..1" BDD : documented_by
+    Domain "*" --> "1" PatternLibrary : contributes_to
+
+    note for Memory "Topics: personal_info,<br/>preferences,<br/>key_decisions,<br/>explicit_instructions"
+    note for Event "Parsed from .jsonl<br/>session files"
+    note for Embedding "384-dim vectors<br/>all-MiniLM-L6-v2"
